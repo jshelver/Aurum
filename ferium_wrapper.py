@@ -126,23 +126,19 @@ def list_mods() -> List[str]:
     return mod_ids
 
 
-def add_mods(mod_ids: List[str]) -> List[str]:
+def add_mod(mod_id: str) -> str:
     """
-    Add Modrinth mod IDs to the active profile.
-    Returns a list of stdout messages or error strings.
+    Add a single Modrinth mod ID to the active profile.
+    Returns the terminal output or raises FeriumError on failure.
     """
-    results: List[str] = []
-    for mod_id in mod_ids:
-        try:
-            out = run_command(["ferium", "add", mod_id]).strip()
-            results.append(out)
-        except subprocess.CalledProcessError as e:
-            err = (e.stdout or e.stderr or "").strip()
-            if "project does not exist" in err.lower():
-                results.append(f"{mod_id}: project does not exist")
-            else:
-                results.append(err)
-    return results
+    try:
+        result = run_command(["ferium", "add", mod_id]).strip()
+        return result
+    except subprocess.CalledProcessError as e:
+        err = (e.stdout or e.stderr or "").strip()
+        if "project does not exist" in err.lower():
+            raise FeriumError(f"{mod_id}: project does not exist")
+        raise FeriumError(err)
 
 
 def upgrade_mods() -> str:
