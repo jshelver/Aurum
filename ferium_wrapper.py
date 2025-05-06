@@ -1,4 +1,5 @@
 import subprocess
+import os
 from typing import List, Optional
 
 
@@ -13,13 +14,24 @@ def run_command(cmd: List[str]) -> str:
     Uses UTF-8 encoding with replacement for undecodable bytes to prevent UnicodeDecodeError.
     Raises subprocess.CalledProcessError on non-zero exit.
     """
+    # Windows: don’t pop up a console for the child process
+    startupinfo = None
+    creationflags = 0
+    if os.name == 'nt':
+        startupinfo = subprocess.STARTUPINFO()
+        # this flag makes the window not show
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        creationflags = subprocess.CREATE_NO_WINDOW
+
     result = subprocess.run(
         cmd,
         capture_output=True,
         text=True,
         encoding='utf-8',
         errors='replace',
-        check=True
+        check=True,
+        startupinfo=startupinfo,
+        creationflags=creationflags
     )
     return result.stdout
 
